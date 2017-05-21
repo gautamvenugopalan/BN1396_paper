@@ -44,6 +44,7 @@
 \usepackage{graphicx} % Include figure files
 \usepackage{dcolumn}  % Align table columns on decimal point
 \usepackage[inline]{enumitem} %To have inline lists
+\usepackage[hypertex]{hyperref} % hyperlinks for references.
 
 \graphicspath{{./Figures_and_Plots/}}
 
@@ -154,28 +155,138 @@ We used the following eight variables as inputs to the NN to discriminate betwee
 \item the likelihood ratio ofthe Fisher discriminant formed from 17 modified Fox-Wolfram moments \cite{Wolfram}, \item the difference between the sum of charges of particles in the hemisphere about the $D$ candidate direction, and that in the opposite hemisphere, excluding particles used in the $B$ meson reconstruction, \item the product of the charge of the $B$ candidate and the sum of the charges of all kaons associated with that event \textbf{not} used in the reconstruction of the $B$ candidate, \item the cosine of the angle between the $B$ candidate flight direction and the beam axis, \item the vertex separation between the vertex marking the origin of the $B$ decay, and the remaining tracks, \item the absolute value of the cosine of the angle in the CoM frame between the thrust axis of the $B$ decay and that of other particles in the event, \item the absolute value of the $B$ flavor tagging dilution factor \cite{Bdilution}, and \item the cosine of the angle between the daughter $\pi^+$ meson's flight direction and the opposite direction to the $B$ meson in the $D$ meson's rest frame.
 \end {enumerate*}
 
-The NeuroBayes (NB) package \cite{Feindt} was used to implement the continuum suppression NN. The network was trained using samples of truth-matched signal and continuum Monte-Carlo (MC) data, after applying all of the other selection cuts previously described. The output of the NN, $\mathcal{C}_{NB}$, takes on values between $-1$ and $1$, where a value of $1 (-1)$ indicates a signal- (continuum-) like event. In this analysis, we require that $\mathcal{C}_{NB} > 0.3$, a threshold chosen so as to maximize the statistical significance of the signal, defined as $\sqrt{2 \ln \mathcal{L}_{\mathrm{sig}} - 2 \ln \mathcal{L}_{\mathrm{0}}}$, where $\mathcal{L}_{\mathrm{sig}}$ and $\mathcal{L}_{\mathrm{0}}$ are the values of the likelihood function. 
+The NeuroBayes (NB) package \cite{Feindt} was used to implement the continuum suppression NN. The network was trained using samples of truth-matched signal and continuum Monte-Carlo (MC) data, after applying all of the other selection cuts previously described. The output of the NN, $\mathcal{C}_{NB}$, takes on values between $-1$ and $1$, where a value of $1 (-1)$ indicates a signal- (continuum-) like event. In this analysis, we require that $\mathcal{C}_{NB} > 0.3$, a threshold chosen so as to maximize the statistical significance of the signal, defined as $\sqrt{2 \ln \mathcal{L}_{\mathrm{sig}} - 2 \ln \mathcal{L}_{\mathrm{0}}}$, where $\mathcal{L}_{\mathrm{sig}}$ and $\mathcal{L}_{\mathrm{0}}$ are the values of the likelihood function for optimal signal yield and zero signal yield respectively (defined in Equation \ref{eq:4}). 
 
+The distribution of the output variable from the NN is sharply peaked towards $1$ and $-1$ for signal and continuum events respectively, making it difficult to describe these distributions using analytical probability density functions (PDFs). Since signal extraction is done by means of an extended maximum likelihood fit, it is desirable to have simple analytical PDFs, such as Gaussians and Bifurcated Gaussians, describe the output of the NN. In order to achieve this, $\mathcal{C}_{NB}$ is transformed to $\mathcal{C}_{NB}'$ according to the relation
 
-
-\begin{figure}[htb]
-%\includegraphics[width=0.54\textwidth]{psiks.eps}
-\caption{Insert figure filename here.
- For advice and macros for publication quality figures, see\\
-%{\bf  
-{\tt http://belle.kek.jp/secured/publication/figure\_tips.html}
-% http://belle.kek.jp/~kinosh/private/pub/figure_tips.html
-Please try to make data points and fit
-curves clear and visible. Use reasonable bin sizes and appropriate
-aspect ratios. Axes should be labeled. For color figures
-use primary colors and avoid "Miami Vice" pastels (pink, light green, etc.)
+\begin{equation}
+\label{eq:2
 }
-\label{xm}
-\end{figure}
+\mathcal{C}_{NB}' = \log \Big{(}\frac{\mathcal{C}_{NB} - \mathcal{C}_{NB,low}}{\mathcal{C}_{NB,high} - \mathcal{C}_{NB}}\Big{)},
+\end{equation}
+
+\noindent where $\mathcal{C}_{NB,low}$ is the lower cutoff placed on the NN output as described earlier, and $\mathcal{C}_{NB,high}$ is the largest value of $NB$ for all events in the dataset.
+
+Even after implementing all selection cuts and vetoes described thus far, it is possible that there are multiple $B$ meson candidates per event. For this analysis, we only consider a single candidate per event, and hence, for events in which multiple candidates are identified, a single candidate needs to be chosen. We adopt an approach in which the best candidate is selected on the basis of minimum $\chi^2$, as defined in Equations \ref{eq:subeq3a} and \ref{eq:subeq3b}.
+
+\begin{subequations} \label{eq:3}
+\begin{align}
+&\chi^2 = \big( \frac{M_D - \mu_D}{\sigma^+_D} \big)^2 +  \big( \frac{M_{bc} - \mu_{bc}}{\sigma_{bc}} \big)^2  ~, \text{for} ~ M_D > \mu_D, \text{and} \label{eq:subeq3a}\\
+&\chi^2 = \big( \frac{M_D - \mu_D}{\sigma^-_D} \big)^2 + \big( \frac{M_{bc} - \mu_{bc}}{\sigma_{bc}} \big)^2  ~, \text{for} ~ M_D < \mu_D, \label{eq:subeq3b}
+\end{align}
+\end{subequations}
+
+\noindent where $\mu_D ~ (\sigma^{\pm}_D)$ is the mean (width) of the distribution of the mass of the $D$ meson candidates, and $\mu_{bc} ~ (\sigma_{bc})$ is the mean(width) of the $M_{bc}$ distribution. These parameters are determined from a dataset of truth-matched signal-like MC events passing all other selection criteria and vetoes. We adopted a counting method, with the widths being determined by requiring that 68\% of the total events lie between $\mu_D - \sigma^-_D \leq M_D \leq \mu_D + \sigma^+_D$, and similarly for $M_{bc}$. The width of $M_{bc}$ was symmetrized by taking the arithmetic mean of the left and right $\sigma$s. The final set of values used was: $\mu_{bc} = 5.27883 ~\mathrm{GeV/}c^2$, $\sigma_{bc} = 2.9297 ~\mathrm{MeV/}c^2$, $\mu_{D} = 1.86285 ~\mathrm{GeV/}c^2$, $\sigma_{D}^- = 20.9471 ~\mathrm{MeV/}c^2$, and $\sigma_{D}^+ = 15.5749 ~\mathrm{MeV/}c^2$.
+
+A useful figure of metit to gauge the performance of BCS is the ratio of fully truth-matched events to non-truth-matched events in a given MC sample, denoted by $\mathcal{F}$. In one such MC sample,
+ $\mathcal{F} = 5.746 $ before BCS, while it improves to $\mathcal{F} = 8.873$ after BCS, suggesting that the BCS routine is performing as desired. Furthermore, it was found that our BCS metric selects the correct (truth-matched) candidate $\frac{165728}{169807} = 97.6 \%$ of the time. 
+
+Another relevant parameter of interest is the reconstruction efficiency, which is the ratio of the number of truth-matched, selected events (after applying all selection cuts, continuum suppression, and best candidate selection) to the generated number of events. For the final, optimized reconstruction routine used, the reconstruction efficiency for the decay channel $B^{\pm} \rightarrow [\pi^+ \pi^- \pi^0]_{D} K^{\pm}$ was $(11.05 \pm 0.03) \%$, while that for $B^{\pm} \rightarrow [\pi^+ \pi^- \pi^0]_{D} \pi^{\pm}$ was $(11.12 \pm 0.04) \%$, as determined from a generated sample of 1,500,000 events and 500,000 events respectively (the errors cited are the statistical error, computed as $\sqrt{\mathcal{E}(1-\mathcal{E})/N}$, $\mathcal{E} =$ reconstruction efficiency, $N =$ number of generated MC events).
+
+In order to extract the signal yield from the dataset after all selection cuts and vetoes have been applied, an extended Maximum Likelihood (ML) fitting approach is adopted. Among the various estimation methods available, the ML approach has the advantage that under certain conditions, it can saturate the Cramer-Rao bound, which means that we cannot extract any more information from the data sample. Moreover, it is asymptotically consistent. However, it is also susceptible to yielding \textit{biased} estimates, and this limitation has to be kept in mind when analyzing the systematic errors incurred (the ML estimate is, however, an asymptotically unbiased one). 
+
+\begin{equation}
+\label{eq:4}
+\mathcal{L}(x_1, \ldots, x_n;\Theta) = f(x_1, \ldots, x_n;\lambda) = \prod\limits_{i=1}^{n}f(x_i;\Theta).
+\end{equation}
+
+In the context of this analysis, the observables $x_i$ are the values of the fitted variables, $\Delta E$ and $\mathcal{C}_{NB}'$, while the parameters $\lambda$ characterize the PDFs that describe various components of the composite model, and their yields. Performing the fit in two dimensions using two weakly correlated variables, $\Delta E$ and $\mathcal{C}_{NB}'$, has the advantage that the probability of wrongly identifying a background event as signal is reduced, given that two variables have to \textit{simultaneously} peak for an event to be considered signal.
+
+For the signal extraction performed in this analysis, all selected events were grouped into one of the following categories: 
+\begin {enumerate*} [label=\itshape\arabic*\upshape)]
+\item $D\pi$ signal, for which $\Delta E$ was described by two Gaussians with different means and $\mathcal{C}_{NB}'$ is described by a Bifurcated Gaussian, \item $DK$ signal, for which $\Delta E$ was described by two the same two Gaussians used for the $D\pi$ signal, with the width of the auxiliary Gaussian fixed to $0.043241 \times$ the area fraction of the two Gaussians (a value fixed from MC studies), and $\mathcal{C}_{NB}'$ is described by a Bifurcated Gaussian with same widths as for $D\pi$ signal, but with its mean floated, \item $D\pi$ identified as $DK$ and $DK$ identified as $D\pi$ crossfeed backgrounds, for which the $\Delta E$ and $\mathcal{C}_{NB}'$ shapes are identical to their signal counterparts, \item A generic $B\bar{B}$ background, with $\Delta E$ modelled by a second order Chebyshev polynomial (Exponential) for $D\pi$ ($DK$) events and $\mathcal{C}_{NB}'$ modeled by a Bifurcated Gaussian, and finally, \item A generic $q\bar{q}$ background, with $\Delta E$ modeled by a second (first) order Chebyshev polynomial for $D\pi$ ($DK$) events, and $\mathcal{C}_{NB}'$ modeled by two Gaussians with different means.
+\end {enumerate*}
+
+The suitability of each of these shapes was first validated on MC samples. Shape parameters for the crossfeed background $\Delta E$ components, the $B\bar{B}$ background $\mathcal{C}_{NB}'$ components, and the ratio of the area fraction of the two Gaussians to the width of the auxiliary Gaussian for the $D\pi$ signal $\Delta E$ component were fixed to their values from MC samples. The $q\bar{q}$ background $\mathcal{C}_{NB}$ component shape parameters were fixed from the $M_{bc}$ sidebands, $5.245 ~ \mathrm{GeV/}c^{2} < M_{bc} < 5.265 ~ \mathrm{GeV/}c^2$.
+
+The fit is performed jointly on $D\pi$ and $DK$ events. The $B^{\pm} \rightarrow Dh^{\pm}$ ($h = K, \pi$) data sample is grouped into 4 sub-samples on the basis of the charge of the $B$ candidate $\eta = \pm 1$, and a PID variable that takes on values $p (f)$ if it passes (fails) a charged kaon identification ($KID$) test ($KID > 0.6$ is classified as $p$). These sub-samples are then fitted simultaneously. Both the pion misidentification rate $\kappa =  0.0447$ and the true kaon identification efficiency $\epsilon = 0.8541$ are fixed to the values for MC data samples as determined in \cite{BN1201}. The charge asymmetries $A^{D\pi}$, $A^{DK}$, and $A^{B\bar{B}}$ (for $DK$ from $B\bar{B}$) are floated in the final fit, while those for the $D\pi$ from $B\bar{B}$ and $q\bar{q}$ components are fixed to 0. Given that the correlation between the $\Delta E$ and $NB'$ variables is small, the joint PDF for each component is arrived at by taking the product of the PDFs for each variable, and summing up these products for the various components. 
+
+The signal yields for the simultaneous fit can be expressed as follows (in these equations, $N_{tot}^{D\pi}$ refers to the \textit{total} number of $B^{\pm} \rightarrow D\pi^{\pm}$ events, while $R_{K/\pi}$ is the ratio of branching fraction of the $B^{\pm} \rightarrow DK^{\pm}$ decay mode to that of the $B^{\pm} \rightarrow D\pi^{\pm}$ decay modes):
+
+\begin{subequations} \label{eq:5}
+\begin{align}
+&DK \text{ signal ~~:}N^{DK}_{\eta, p} = \frac{1}{2}(1-\eta A^{DK})N^{D\pi}_{tot}R_{K/\pi}\epsilon ,\\
+&DK \text{ in } D\pi \text{ crossfeed :} \nonumber \\
+& ~~~~ N^{DK}_{\eta, f} = \frac{1}{2}(1-\eta A^{DK})N^{D\pi}_{tot}R_{K/\pi}(1- \epsilon), \\
+&D\pi \text{ in } DK \text{ crossfeed :} N^{D\pi}_{\eta, p} = \frac{1}{2}(1-\eta A^{D\pi})N^{D\pi}_{tot} \kappa,\\
+&D\pi \text{ signal ~~:} N^{D\pi}_{\eta, f} = \frac{1}{2}(1-\eta A^{D\pi})N^{D\pi}_{tot}(1 - \kappa).
+\end{align}
+\end{subequations}
+
+Projections of the fit on the full Belle dataset are shown in Figure \ref{fig:Figure 1}. The $\chi^2/DoF$ values are indicative of good fits, while the fitted values of the physics parameters are in excellent agreement with the expectations from the study of Generic MC data. These values are reflected in Equation \ref{eq:6}.
 
 
+\begin{subequations} \label{eq:6}
+\begin{align}
+&A_{F_{+}} =  0.16 \pm 0.12 (\mathrm{stat.}) ,\\
+&R_{F_{+}} = 0.076 \pm 0.012 (\mathrm{stat.}) .
+\end{align}
+\end{subequations}
+  
+
+\begin{figure}
+
+\centering
+\mbox{\subfigure[]{\includegraphics[width=1.5in]{data_Dpip_DE.pdf}}\quad
+\subfigure[]{\includegraphics[width=1.5in]{data_Dpim_DE.pdf} }}
+
+\mbox{\subfigure[]{\includegraphics[width=1.5in]{data_DKp_DE.pdf}}\quad
+\subfigure[]{\includegraphics[width=1.5in]{data_DKm_DE.pdf} }}
+
+\mbox{\subfigure[]{\includegraphics[width=1.5in]{data_DKp_SE.pdf}}\quad
+\subfigure[]{\includegraphics[width=1.5in]{data_DKm_SE.pdf} }}
 
 
+\caption{Full projections onto $\Delta E$ for $KID < 0.6$ (top row) and $KID > 0.6$ (second row) for the full unblinded Belle dataset. Third row shows signal enhanced ($\mathcal{C}_{NB}' > 2.5$) projections for $KID > 0.6$. The columns denote $\eta = +1$ (left) and $\eta = -1$ (right). The PDFs are signal $D\pi$ (dashed green), signal $DK$ (dashed red), $B\bar{B}$ (dashed orange) and $q\bar{q}$ (dashed black). } \label{fig:Figure 1}
+\end{figure} 
+
+The various sources of systematic uncertainties associated with the parameters $A_{F_{+}}$ and $R_{F_{+}}$ are summarised in Table \ref{table:Table 2}, and are estimated as follows. Each of the fixed PDF parameters was varied about its \textit{fixed} value by $\pm 1\sigma$, where $\sigma$ refers to the \textit{statistical} uncertainty in this parameter when it was fixed from a suitable MC sample. In addition to varying the fixed PDF parameters, the $\Delta E$ shape for the $DK$ from $B\bar{B}$ contribution was also varied to a $1^{st}$ order Chebyshev polynomial (as opposed to an exponential). As a result of this change in ansatz shape, there was a $19.66  \%$ ($19.09 \%$) variation in $A_{F_+}$ ($R_{F_{+}}$), which was taken as an additional systematic error.
+
+Possible contribution of unmodelled charmless peaking background ($B^{\pm} \rightarrow K^{\pm}\pi^{\pm}\pi^{\mp}\pi^0$) to the fitted signal yield was estimated by running the fitter on the $M_{D}$ sidebands, $1.1 ~ \mathrm{GeV/}c^2 \leq {\mathrm{M_{D}}} \leq 1.78 ~ \mathrm{GeV/}c^2$ and  $1.923 ~ \mathrm{GeV/}c^2 \leq {\mathrm{M_{D}}} \leq 2.6 ~ \mathrm{GeV/}c^2$. The fitted value of the parameter $N^{D\pi}_{tot}$ is $309 \pm 209$. Applying the formulae from Eq. \ref{eq:5}, and normalizing for the fact that the $M_{D}$ sideband is $9.49$ times wider than the $M_{D}$ signal window, the unmodelled peaking background is $133 \pm 160$ events. We further ran the fitter on the latest rare MC sample, and saw no significant peaking background which could pollute the signal yield. 
+
+We generated an ensemble of 1000 Toy MC experiments from the same 2D PDF used in signal extraction, and ran the fitter on these samples, from which we conclude that any bias in the fitter is small. Further, we performed a linearity test by generating ensembles of Toy MC experiments with the values of $A_{F_+}$ and $R_{F_{+}}$ varied between $-0.2$ to $0.2$ and $0.05$ to $0.10$ respectively (1000 toy experiments at each fixed value of the parameter). Taking the mean fitted value from these ensembles and applying a linear model, we find the slope and intercept for $A_{F_{+}}$ to be $0.989 \pm 0.003$ and $0.0033 \pm 0.0003$ respectively. The corresponding values for $R_{F_{+}}$ are $1.006 \pm 0.002$ and $-0.0014 \pm 0.0002$ respectively. For both parameters, we take the fitted intercept values to be the systematic error contribution from this source. 
+
+In order to study the systematic error contribution from possible crossfeed between $B\bar{B}$ and $q\bar{q}$ yields, we fixed the yields of the $B\bar{B}$ and $q\bar{q}$ components to the truth-matched value in each stream of Generic MC. We then ran the fitter in this configuration and noted the fitted values of $A_{F_{+}}$ and $R_{F_{+}}$. The deviation in $A_{F_{+}}$ and $R_{F_{+}}$ in this constrained fit from their values in the free fit was taken as a systematic error.
+
+
+\begin{table}[ht]
+\caption{Summary of systematic errors in $A_{F_{+}}$ and $R_{F_{+}}$. Here, results are only quoted to 3 decimal places.  }
+\centering
+\begin{tabular}{c c c} 
+\hline\hline
+Source of systematic error &  $\Delta A_{F_{+}}^{\mathrm{syst}}$ & $\Delta R_{F_{+}}^{\mathrm{syst}}$  \\
+\hline
+ & & \\
+Fixed PDF parameters & \substack{+0.013 \\ -0.006} & \substack{+0.009 \\ -0.001} \\
+ & & \\
+Uncertainty in PID efficiency & $\pm 0.000$ &  $\pm 0.000$ \\
+ & & \\
+Variation of $DK$ from $B\bar{B} \Delta E$ Ansatz shape & $ -0.030$ & $+ 0.014$ \\
+ & & \\
+Unmodelled peaking background & $\pm 0.044$ & $\pm 0.027$ \\
+ & & \\
+Fit bias and linearity & $\pm 0.003$  & $\pm 0.001$ \\
+ & & \\
+Crossfeed between $B\bar{B}$ and $q\bar{q}$ yields & $-0.002$ & $+0.001$ \\
+ & & \\
+\textbf{Quadrature Sum} & \substack{\boldsymbol{+}\mathbf{0.046} \\ \boldsymbol{-}\mathbf{0.054}} &\substack{\boldsymbol{+}\mathbf{0.032} \\ \boldsymbol{-}\mathbf{0.027}}  \\
+\hline
+\end{tabular}
+\label{table:Table 2}
+\end{table}
+
+In summary, an analysis of the decay mode $B^{\pm} \rightarrow [\pi^{+} \pi^{-} \pi^{0}]_{D} K^{\pm}$ using the full Belle dataset was used to determine the CP asymmetry parameter $A_{F_{+}}$ as well as the branching fraction ratio $R_{F_{+}}$. The fitted value of $A_{F_{+}}$ and $R_{F_{+}}$, along with associated statistical and systematic errors are:
+
+\begin{subequations} \label{eq:9}
+\begin{align}
+&A_{F_{+}} =  0.16 \pm 0.12 (\mathrm{stat.}) \pm 0.05 (\mathrm{syst.}) \nonumber,\\ 
+&R_{F_{+}} = 0.076 \pm 0.012 (\mathrm{stat.}) ^{+0.032} _{-0.027} (\mathrm{syst.}) \nonumber ,
+\end{align}
+\end{subequations}
+
+where the quoted systematic error is the quadrature sum of the various errors evaluated in Table \ref{table:Table 2}. 
+
+The statistical error in the parameter $A_{F_{+}}$ as determined from MC data is comparable to other measurements \cite{BaBar, LHCb}. This analysis will add to the number of modes available for determination of the UT angle $\phi_3$ using the GLW method.
 
 
 %***** Acknowledgments *****
